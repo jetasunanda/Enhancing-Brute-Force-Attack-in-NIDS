@@ -37,6 +37,8 @@
 \setlength{\parskip}{0pt}
 \setcounter{secnumdepth}{0}
 \captionsetup{font=normalsize,labelfont=bf,labelsep=period}
+\emergencystretch=3em
+\Urlmuskip=0mu plus 1mu\relax
 
 \makeatletter
 \renewcommand{\@maketitle}{%
@@ -106,11 +108,12 @@ satriadi.santika@binus.ac.id
 \date{}
 
 \begin{document}
+\sloppy
 
 \maketitle
 
 \section{Abstract}
-Machine-learning-based Network Intrusion Detection Systems (NIDS) are widely used to detect malicious traffic, but their performance can degrade when attack classes are underrepresented. Previous studies have attempted to mitigate this through feature selection, sampling, and ensemble learning. However, this components are often failing to adequately address minority attacks. In dataset like CICIDS2017, Brute Force traffic remains difficult to detect because repeated authentication attempts closely resemble benign activity. This study focuses on Brute Force detection in the imbalanced CICIDS2017 dataset using a hybrid sampling and ensemble-learning pipeline. The proposed workflow maps CICIDS2017 labels into eight multiclass categories, limits the dominant Benign class, cleans invalid records, performs train-only feature selection using ANOVA \textit{SelectKBest} and correlation pruning, and applies SMOTE-Tomek only to the training partition. Two heterogeneous ensembles, soft voting and stacking, are then evaluated on an unseen test set. SMOTE-Tomek increased Brute Force training representation from 5,204 to 76,385 samples and reduced its imbalance ratio from 30.30:1 to 2.06:1. On the test set, soft voting achieved 98.73\% Brute Force precision, 92.78\% recall, and 95.66\% F1-score, while stacking achieved 98.28\% precision, 93.16\% recall, and 95.65\% F1-score. The results show that hybrid sampling and ensemble learning provide a practical strategy for Brute Force detection, although generalization beyond CICIDS2017 remains limited.
+Machine-learning-based Network Intrusion Detection Systems (NIDS) are widely used to detect malicious traffic, but their performance can degrade when attack classes are severely underrepresented. Previous studies have attempted to mitigate this through feature selection, sampling, and ensemble learning. However, this components are often failing to adequately address minority attacks. In dataset like CICIDS2017, Brute Force traffic remains difficult to detect because repeated authentication attempts closely resemble benign activity. This study evaluates a Brute-Force-centered CICIDS2017 pipeline that integrates train-only feature selection, SMOTE-Tomek hybrid sampling, and ensemble learning. The proposed workflow consolidates CICIDS2017 labels into eight multiclass categories, limits the dominant Benign class, cleans invalid records, selects numerical flow features using ANOVA \textit{SelectKBest} and correlation pruning, and applies resampling only to the training partition. Sampling-method validation showed that SMOTE-Tomek achieved the strongest macro F1-score among the evaluated strategies. After classifier selection, the Stacking Ensemble with SMOTE-Tomek was selected as the final configuration. SMOTE-Tomek increased Brute Force training representation from 5,204 to 76,385 samples and reduced the imbalance against DDoS from about 30.30:1 to 2.06:1. On the unseen test set, the selected configuration achieved 99.93\% macro accuracy, 86.10\% macro precision, 90.22\% macro recall, 86.93\% macro F1-score, and 97.98\% macro ROC-AUC. For Brute Force traffic specifically, it achieved 98.70\% precision, 92.66\% recall, 95.58\% F1-score, and 0.0253\% FPR. The results indicate that SMOTE-Tomek and heterogeneous ensemble learning can improve Brute Force detection under multiclass imbalance, while extremely rare classes still require further validation.
 
 \section{Keywords}
 Network Intrusion Detection System, Brute Force Detection, CICIDS2017, SMOTE-Tomek, Ensemble Learning
@@ -259,128 +262,103 @@ Because accuracy can hide weak minority-class detection, the discussion emphasiz
 
 \section{RESULTS AND DISCUSSION}
 
-This section reports and interprets the test-set results, validation diagnostics, and feature-contribution findings. The discussion does not only describe the numerical values, but also explains what the results mean, relates them to previous NIDS studies, and identifies their practical implications for Brute Force detection as the main minority class of interest.
+This section presents the experimental findings as a connected interpretation of class balancing, feature contribution, and classifier selection. Each discussion begins with the observed result, explains its meaning, connects it with previous studies, states its implication, and then clarifies the consequence for Brute Force detection. Macro-averaged metrics are emphasized because accuracy can remain high in imbalanced NIDS data even when minority attack behavior is less reliably detected.
 
-\subsection{Overall Ensemble Performance}
+\subsection{Effect of Hybrid Sampling on Class Representation}
 
-Table~\ref{tab:overall_ensemble_results} summarizes the final test performance of the proposed ensembles. Both models achieved very high macro accuracy, with soft voting reaching 99.9337\% and stacking reaching 99.9349\%. However, the macro-averaged precision, recall, F1-score, and ROC-AUC show a clearer difference between the two approaches. Soft voting achieved higher macro precision, recall, F1-score, and ROC-AUC, while stacking produced slightly higher macro accuracy and slightly lower macro FPR. This means that accuracy alone is not sufficient for interpreting performance in an imbalanced multiclass NIDS setting, because a model can maintain high accuracy while still showing weaker class-balanced behavior.
-
-The stronger macro F1-score and ROC-AUC of soft voting indicate that probability-level averaging produced more stable decisions across classes, whereas stacking remained competitive mainly in overall correctness and false-positive control. This result is consistent with previous ensemble-based IDS studies, which show that voting and stacking can improve intrusion detection by combining diverse classifiers, but their advantages depend on the metric and attack distribution being evaluated \parencite{farooqi2024enhancing,urmi2024stacked,alessa2024hybrid,nassreddine2025ensemble}. The implication is that ensemble selection should be based on the operational goal rather than accuracy alone. Consequently, soft voting is more suitable when balanced multiclass detection is the priority, while stacking remains a viable option when slightly higher overall accuracy and lower macro FPR are preferred.
+Table~\ref{tab:sampling_selection_macro} shows the five-fold validation results used to select the sampling strategy. SMOTE-Tomek achieved the strongest macro F1-score at 83.83\%, the highest macro precision at 83.85\%, the highest macro recall at 89.10\%, and the highest macro ROC-AUC at 94.99\%. Tomek Links produced the highest macro accuracy at 99.93\% and the lowest macro FPR at 0.0450\%, but its macro F1-score was lower than the no-sampling baseline.
 
 \begin{table}[H]
-\caption{Overall Test Performance of the Proposed Ensemble Models}
-\label{tab:overall_ensemble_results}
+\caption{Sampling Method Selection Based on Validation Macro Performance}
+\label{tab:sampling_selection_macro}
 \centering
 \scriptsize
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3pt}
 \resizebox{\linewidth}{!}{%
-\begin{tabular}{|l|l|l|l|l|l|l|}
+\begin{tabular}{|l|r|r|r|r|r|r|}
 \hline
-\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Model}}} &
-\multicolumn{6}{c|}{\textbf{Macro-Averaged Test Metrics}} \\
-\cline{2-7}
-\multicolumn{1}{|c|}{} &
-\multicolumn{1}{c|}{\textbf{Acc.}} &
-\multicolumn{1}{c|}{\textbf{Prec.}} &
-\multicolumn{1}{c|}{\textbf{Rec.}} &
-\multicolumn{1}{c|}{\textbf{F1}} &
-\multicolumn{1}{c|}{\textbf{FPR}} &
-\multicolumn{1}{c|}{\textbf{ROC-AUC}} \\
+\textbf{Sampling Method} & \textbf{Macro Acc.} & \textbf{Macro Prec.} & \textbf{Macro Rec.} & \textbf{Macro F1} & \textbf{Macro FPR} & \textbf{Macro ROC-AUC} \\
 \hline
-Soft Voting & 99.9337\% & 86.05\% & 89.01\% & 86.21\% & 0.0376\% & 99.9803\% \\
+No Sampling & 99.92\% & 80.05\% & 88.09\% & 82.02\% & 0.0484\% & 94.35\% \\
 \hline
-Stacking    & 99.9349\% & 85.37\% & 86.26\% & 84.72\% & 0.0364\% & 97.9917\% \\
+SMOTE & 99.91\% & 82.86\% & 88.41\% & 82.99\% & 0.0519\% & 94.60\% \\
+\hline
+SMOTE-Tomek & 99.91\% & 83.85\% & 89.10\% & 83.83\% & 0.0508\% & 94.99\% \\
+\hline
+Tomek & 99.93\% & 79.65\% & 86.43\% & 81.20\% & 0.0450\% & 93.42\% \\
 \hline
 \end{tabular}
 }
-\caption*{\textit{Note.} Metrics are macro-averaged across all classes on the test set.}
+\caption*{\textit{Note.} Sampling strategies were evaluated with a Decision Tree classifier across five validation folds.}
 \end{table}
 
-\subsection{Brute Force Detection Performance}
+The meaning of this result is that cleaning majority-boundary samples alone can reduce false positives, but it does not necessarily improve class-balanced detection. SMOTE-Tomek was stronger because it combined synthetic minority oversampling with Tomek-link cleaning. In the final training partition, Brute Force increased from 5,204 to 76,385 samples after SMOTE-Tomek. Relative to DDoS, the largest attack class, the Brute Force imbalance changed from approximately 30.30:1 before resampling to 2.06:1 after resampling. This does not make the dataset perfectly uniform, because DDoS remained larger than the other classes, but it substantially reduced the pressure that previously made Brute Force easier to overlook during model fitting.
 
-Table~\ref{tab:bf_detection_results} shows that SMOTE-Tomek affected Brute Force detection differently depending on the ensemble model. In soft voting, SMOTE-Tomek increased Brute Force precision from 96.29\% to 98.73\% and reduced FPR from 0.0773\% to 0.0247\%, but recall decreased from 96.86\% to 92.78\%. This means that soft voting became more conservative after resampling: it produced fewer false Brute Force alarms, but it also missed more actual Brute Force samples. In stacking, SMOTE-Tomek increased recall from 91.31\% to 93.16\% and F1-score from 94.97\% to 95.65\%, although FPR increased from 0.0201\% to 0.0338\%. This means that stacking benefited from the additional minority-class representation by detecting more Brute Force samples, but the improvement came with a small increase in false alarms.
+This finding is consistent with studies showing that hybrid sampling can improve minority-attack representation in imbalanced intrusion datasets \parencite{khan2024balanced,le2024unbalanced,nassreddine2025ensemble,harini2023minority}. The selection of SMOTE-Tomek is therefore justified because it improved the most important macro-balanced indicators while also increasing the Brute Force training representation substantially. The implication is that resampling should not be judged only by overall accuracy, because the accuracy differences among sampling methods were very small. Consequently, SMOTE-Tomek became the most appropriate sampling method for this pipeline because it gave Brute Force traffic a more meaningful role in model learning without discarding the multiclass structure of the dataset.
 
-These results support previous findings that hybrid sampling can improve minority-attack recognition, but its effect is not uniform across classifiers or metrics \parencite{khan2024balanced,le2024unbalanced,nassreddine2025ensemble,harini2023minority}. In this study, SMOTE-Tomek reduced the imbalance pressure on the Brute Force class, yet the final trade-off still depended on how each ensemble used the resampled training distribution. The implication is that resampling should not be evaluated only by whether it increases one metric; it must also be assessed through precision, recall, F1-score, and FPR together. Consequently, soft voting with SMOTE-Tomek is preferable when avoiding false Brute Force alarms is more important, while stacking with SMOTE-Tomek is more suitable when improving Brute Force recall and F1-score is the main objective.
+\subsection{Selected Flow Features and Detection Meaning}
+
+The feature-selection process reduced the original numerical feature space to 16 final features through ANOVA-based \textit{SelectKBest} and correlation pruning. Permutation-importance diagnostics showed that Destination Port was the most influential feature. The remaining high-ranked features were grouped into four flow-behavior categories: TCP window behavior, timing behavior, packet behavior, and TCP flag behavior.
+
+The meaning of this feature pattern is behaviorally plausible for Brute Force detection. These features describe service targeting, TCP initial window behavior, inter-arrival timing, connection duration, packet-size variation, traffic rate, and TCP flag behavior. Brute Force activity often concentrates on specific services and produces repeated connection attempts, so destination service information, timing regularity, packet-length behavior, and TCP-state characteristics can become useful indicators.
+
+The result supports previous NIDS studies that use feature selection to reduce redundant flow attributes before classification \parencite{nassreddine2025ensemble,alsaffar2024shielding}. It also agrees with studies that treat Brute Force and related web attacks as behavior-driven detection problems rather than purely volume-driven anomalies \parencite{rihan2023iot,irfaissurur2025web}. The use of these selected features is justified because they are not only statistically important, but also meaningful in terms of how Brute Force traffic appears in network flows. The implication is that the selected model did not depend only on opaque statistical separation; it relied on flow features that can be interpreted in terms of network behavior. Consequently, the result strengthens the practical credibility of the pipeline for CICIDS2017 Brute Force detection, although the same feature ranking should be validated on newer or different datasets before being generalized.
+
+\subsection{Classifier Selection and Minority-Class Robustness}
+
+Table~\ref{tab:classifier_selection_macro} reports the classifier-selection results after SMOTE-Tomek was chosen as the sampling method. The Stacking Ensemble achieved the highest validation macro F1-score at 84.78\%, the highest macro precision at 86.35\%, the highest macro accuracy at 99.93\%, and the lowest macro FPR at 0.0406\%. XGBoost achieved slightly higher macro recall at 89.27\% and the highest macro ROC-AUC at 99.98\%, while Soft Voting also produced a very high macro ROC-AUC at 99.98\%.
 
 \begin{table}[H]
-\caption{Brute Force Test Performance with and without SMOTE-Tomek}
-\label{tab:bf_detection_results}
+\caption{Classifier Model Selection Based on Validation Macro Performance}
+\label{tab:classifier_selection_macro}
 \centering
 \scriptsize
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3pt}
 \resizebox{\linewidth}{!}{%
-\begin{tabular}{|l|l|r|r|r|r|}
+\begin{tabular}{|l|r|r|r|r|r|r|}
 \hline
-\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Model}}} &
-\multicolumn{1}{c|}{\multirow{2}{*}{\textbf{Sampling Strategy}}} &
-\multicolumn{4}{c|}{\textbf{Brute Force Test Metrics}} \\
-\cline{3-6}
- & & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} & \textbf{FPR} \\
+\textbf{Classifier Model} & \textbf{Macro Acc.} & \textbf{Macro Prec.} & \textbf{Macro Rec.} & \textbf{Macro F1} & \textbf{Macro FPR} & \textbf{Macro ROC-AUC} \\
 \hline
-Soft Voting & No Sampling  & 96.29\% & 96.86\% & 96.57\% & 0.0773\% \\
+Decision Tree & 99.91\% & 83.85\% & 89.10\% & 83.83\% & 0.0508\% & 94.99\% \\
 \hline
-Soft Voting & SMOTE-Tomek  & 98.73\% & 92.78\% & 95.66\% & 0.0247\% \\
+KNN & 99.61\% & 63.54\% & 80.68\% & 67.07\% & 0.2719\% & 90.83\% \\
 \hline
-Stacking    & No Sampling  & 98.95\% & 91.31\% & 94.97\% & 0.0201\% \\
+Logistic Regression & 92.97\% & 36.86\% & 65.92\% & 33.07\% & 4.414\% & 93.27\% \\
 \hline
-Stacking    & SMOTE-Tomek  & 98.28\% & 93.16\% & 95.65\% & 0.0338\% \\
+Random Forest & 99.92\% & 82.42\% & 84.60\% & 81.71\% & 0.0464\% & 99.77\% \\
 \hline
-\end{tabular}
-}
-\caption*{\textit{Note.} BF means Brute Force.}
-\end{table}
-
-\subsection{Individual Classifier Diagnostics}
-
-Table~\ref{tab:validation_baselines} reports validation diagnostics for individual classifiers trained with SMOTE-Tomek. These values are not final test baselines, but they help explain why ensemble learning was used. XGBoost obtained the highest validation macro F1-score at 85.35\% and the lowest log loss at 0.0104, indicating the strongest overall validation behavior among the individual classifiers. However, the Brute Force-specific results show that no single classifier dominated all criteria. Random Forest and Decision Tree produced Brute Force F1-scores above 94\%, while KNN achieved the highest Brute Force recall at 92.20\%.
-
-The meaning of this pattern is that individual classifiers captured useful but different decision behavior. KNN was sensitive to Brute Force samples, but its high log loss of 0.4115 and lower macro F1-score of 65.65\% indicate weaker probability reliability and less consistent multiclass performance. This supports the motivation for ensemble learning in IDS, where diverse learners are combined to reduce dependence on the weaknesses of a single classifier \parencite{farooqi2024enhancing,urmi2024stacked,alessa2024hybrid,pramanick2025stacking}. The implication is that strong individual validation scores are useful diagnostics, but they do not replace final ensemble evaluation on the unseen test set. Consequently, the final claims of this study should be interpreted as evidence for the proposed soft voting and stacking configurations rather than as a complete comparison of standalone classifiers.
-
-\begin{table}[H]
-\caption{Validation Diagnostics for Individual Classifiers}
-\label{tab:validation_baselines}
-\centering
-\scriptsize
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{3pt}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{|l|l|l|l|l|}
+Soft Voting Ensemble & 99.93\% & 84.42\% & 87.67\% & 84.31\% & 0.0427\% & 99.98\% \\
 \hline
-\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Model}}} &
-\multicolumn{4}{c|}{\textbf{Validation Diagnostics}} \\
-\cline{2-5}
-\multicolumn{1}{|c|}{} &
-\multicolumn{1}{c|}{\textbf{Log Loss}} &
-\multicolumn{1}{c|}{\textbf{Macro F1}} &
-\multicolumn{1}{c|}{\textbf{BF F1}} &
-\multicolumn{1}{c|}{\textbf{BF Recall}} \\
+Stacking Ensemble & 99.93\% & 86.35\% & 87.20\% & 84.78\% & 0.0406\% & 98.90\% \\
 \hline
-Random Forest & 0.0178 & 83.70\% & 94.65\% & 91.98\% \\
-\hline
-XGBoost & 0.0104 & 85.35\% & 94.09\% & 89.51\% \\
-\hline
-KNN & 0.4115 & 65.65\% & 92.76\% & 92.20\% \\
-\hline
-Decision Tree & 0.0763 & 84.78\% & 94.51\% & 91.84\% \\
+XGBoost & 99.91\% & 85.94\% & 89.27\% & 84.53\% & 0.0487\% & 99.98\% \\
 \hline
 \end{tabular}
 }
-\caption*{\textit{Note.} These diagnostics were computed on the validation set after SMOTE-Tomek training.}
+\caption*{\textit{Note.} All classifier models were evaluated after SMOTE-Tomek resampling across five validation folds.}
 \end{table}
 
-\subsection{Feature Contribution}
+The meaning of this result is that no classifier dominated every metric, but Stacking provided the most balanced trade-off across macro F1-score, precision, accuracy, and false-positive control. Stacking benefited from combining Random Forest, XGBoost, and Decision Tree base learners with Logistic Regression as a meta-learner, allowing the final model to use complementary decision patterns from different classifiers. This supports previous findings that voting and stacking ensembles can improve IDS robustness by reducing dependence on a single learner's behavior \parencite{farooqi2024enhancing,urmi2024stacked,alessa2024hybrid,pramanick2025stacking,emanet2023voting}. The final classifier choice is justified because macro F1-score reflects class-balanced performance more directly than accuracy, while macro FPR is important for avoiding excessive alerts in intrusion detection. The implication is that classifier selection should consider multiple macro metrics rather than one dominant metric. Consequently, the Stacking Ensemble was selected even though XGBoost and Soft Voting remained competitive in ROC-AUC.
 
-Permutation-importance diagnostics indicated that Destination Port was the strongest Brute Force feature in both ensembles, followed by initial TCP window-byte features, flow duration, and packet-length statistics. This result means that the models did not rely only on abstract statistical separation, but also used features that are behaviorally plausible for Brute Force detection. Repeated authentication attempts often target specific services and can create traffic patterns related to service ports, connection duration, packet size, and TCP behavior.
+After the selection stage, the final Stacking Ensemble with SMOTE-Tomek was trained on the combined train-validation partition and evaluated on 157,148 unseen test records. The final configuration achieved 99.93\% macro accuracy, 86.10\% macro precision, 90.22\% macro recall, 86.93\% macro F1-score, 0.0364\% macro FPR, and 97.98\% macro ROC-AUC. For Brute Force specifically, the model achieved 98.70\% precision, 92.66\% recall, 95.58\% F1-score, and 0.0253\% FPR across 3,187 test samples. The meaning of these values is that the selected pipeline detected most Brute Force samples while keeping false Brute Force alarms very low.
 
-This interpretation is consistent with previous cybersecurity studies that describe Brute Force and web attack detection as behavior-driven problems, where repeated access attempts and flow-level traffic characteristics can help distinguish malicious activity from benign traffic \parencite{rihan2023iot,irfaissurur2025web}. The implication is that the proposed ensembles learned patterns that are understandable in the context of network behavior, which strengthens the practical credibility of the results. However, the consequence is that these feature contributions may still be specific to CICIDS2017 traffic characteristics, so validation on newer or different datasets is needed before claiming broader generalization.
+This result is stronger than the multiclass CICIDS2017 result reported by \textcite{khan2024balanced}, who used SMOTE-Tomek with conventional classifiers and reported 96.37\% accuracy and 96.33\% F1-score. The comparison is not fully one-to-one because the earlier study reported overall multiclass performance rather than the same Brute Force-specific test protocol. Nevertheless, the proposed model is justified as a stronger Brute-Force-oriented approach in this experimental setting because it combines train-only hybrid sampling, selected flow features, and heterogeneous stacking, and because it reports high Brute Force precision, recall, F1-score, and FPR on an unseen test set. The implication is that the proposed pipeline does more than improve general multiclass accuracy; it provides clearer evidence of Brute Force detection capability. Consequently, the model can be considered more suitable for Brute Force-focused NIDS evaluation on CICIDS2017 than the conventional-classifier approach reported in the earlier study.
+
+\subsection{Final Interpretation}
+
+Taken together, the results show that the proposed pipeline improved Brute Force detection through three connected mechanisms: SMOTE-Tomek increased minority-class representation, feature selection retained behaviorally meaningful flow attributes, and the Stacking Ensemble combined complementary classifiers into a stronger final decision model. This overall interpretation is supported by previous studies on hybrid sampling, feature selection, and ensemble learning in NIDS \parencite{khan2024balanced,nassreddine2025ensemble,alsaffar2024shielding,farooqi2024enhancing,urmi2024stacked}. The pipeline is justified because each component addresses a specific weakness of imbalanced Brute Force detection: limited minority exposure, redundant flow attributes, and dependence on a single classifier. The practical implication is that Brute Force detection in CICIDS2017 benefits from treating imbalance handling, feature selection, and ensemble learning as one integrated workflow rather than as isolated steps.
+
+The consequence is also important to interpret carefully. The final model performed strongly on Brute Force, Benign, DDoS, Bot, and Port Scan traffic, but extremely small classes remained less stable. SQL-Injection reached only 61.54\% F1-score on six test samples, XSS reached 51.52\% F1-score with low precision, and Infiltrations reached 90.00\% F1-score on only 11 test samples. These outcomes suggest that SMOTE-Tomek helped the main Brute Force target more reliably than classes with extremely limited original support. Therefore, the results support the effectiveness of the selected pipeline on CICIDS2017, but broader deployment claims require validation on newer datasets and more diverse real-world traffic.
 
 \section{CONCLUSION AND FUTURE RESEARCH}
 
-This study presented a compact multiclass NIDS pipeline for Brute Force detection using CICIDS2017. Train-only SMOTE-Tomek substantially improved Brute Force representation, and the ensemble results showed strong Brute Force F1-scores above 95\%. Soft voting was stronger for false-positive control, while stacking gained more from SMOTE-Tomek in recall and F1-score. Future work should validate the pipeline on additional datasets, record exact dependency versions, and evaluate the impact of train-only feature scaling on distance-based and linear components.
+This study presented a multiclass NIDS pipeline for Brute Force detection using CICIDS2017. The pipeline combined label consolidation, Benign-class limitation, train-only feature selection, SMOTE-Tomek hybrid sampling, and ensemble learning. SMOTE-Tomek substantially improved Brute Force training representation from 5,204 to 76,385 samples and reduced the imbalance against DDoS from about 30.30:1 to 2.06:1. After validation-based selection, the Stacking Ensemble with SMOTE-Tomek was chosen as the final configuration.
 
-However, several limitations remain. First, the experiment used only CICIDS2017, so the results may not generalize to newer or different network environments, which is a known concern in ML-based NIDS evaluation \parencite{sarhan2021standard,wardana2024collaborative,gu2025semisupervised}. Second, SMOTE-Tomek did not consistently improve all non-target minority classes. After resampling, XSS still had low precision, with 38.70\% for soft voting and 39.23\% for stacking, although its F1-score increased from 45.88\% to 52.70\% and from 48.88\% to 52.31\%, respectively. SQL-Injection also remained weak, with only 61.54\% F1-score for soft voting and 50.00\% for stacking on six test samples. Infiltrations reached 84.21\% F1-score in both ensembles, but this result was based on only 11 test samples. These results suggest that synthetic resampling helped the main Brute Force target more reliably than extremely small or behaviorally different minority classes. Third, SMOTE-Tomek may introduce synthetic-sample bias, especially for classes with very small original support such as SQL-Injection and Infiltrations. Fourth, exact package versions from the Colab runtime were not recorded. Fifth, no feature scaling or normalization was applied, which may affect KNN and Logistic Regression behavior. Finally, individual classifiers were available as validation diagnostics only, so the final test claims should be interpreted as evidence for the proposed ensemble configurations rather than a complete single-classifier test comparison.
+On the unseen test set, the selected configuration achieved 99.93\% macro accuracy, 86.10\% macro precision, 90.22\% macro recall, 86.93\% macro F1-score, and 97.98\% macro ROC-AUC. For Brute Force traffic, it achieved 98.70\% precision, 92.66\% recall, 95.58\% F1-score, and 0.0253\% FPR. These results indicate that hybrid sampling and heterogeneous ensemble learning can improve Brute Force detection under multiclass imbalance when they are applied within a leakage-aware training workflow.
+
+Several limitations remain. First, the experiment used only CICIDS2017, so the results may not generalize to newer or different network environments, which is a known concern in ML-based NIDS evaluation \parencite{sarhan2021standard,wardana2024collaborative,gu2025semisupervised}. Second, SMOTE-Tomek helped the main Brute Force target more reliably than extremely small classes. SQL-Injection was evaluated on only six test samples, XSS still had weak precision, and Infiltrations had only 11 test samples. Third, synthetic resampling may introduce bias when original support is very limited. Fourth, exact package versions from the Colab runtime were not recorded. Finally, no feature scaling or normalization was applied, which may affect distance-based and linear components such as KNN and Logistic Regression during validation. Future work should validate the pipeline on additional datasets, record exact dependency versions, and evaluate train-only feature scaling for models that are sensitive to feature magnitude.
 
 \FloatBarrier
 
