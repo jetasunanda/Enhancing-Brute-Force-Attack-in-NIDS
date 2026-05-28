@@ -39,40 +39,64 @@
 \captionsetup{font=normalsize,labelfont=bf,labelsep=period}
 
 \makeatletter
+\renewcommand{\@maketitle}{%
+  \newpage
+  \null
+  \vskip 2em%
+  \begin{center}%
+    {\fontsize{14}{16.8}\selectfont\bfseries \@title \par}%
+    \vskip 1.5em%
+    {\fontsize{12}{14.4}\selectfont
+      \lineskip .5em%
+      \begin{tabular}[t]{c}%
+        \@author
+      \end{tabular}\par}%
+    \vskip 1em%
+    {\fontsize{12}{14.4}\selectfont \@date}%
+  \end{center}%
+  \par
+  \vskip 1.5em}
 \renewcommand{\section}{\@startsection{section}{1}{0pt}%
   {1.5\baselineskip}{0.75\baselineskip}%
-  {\normalfont\bfseries}}
+  {\normalfont\fontsize{13}{15.6}\selectfont\bfseries}}
 \renewcommand{\subsection}{\@startsection{subsection}{2}{0pt}%
   {1.25\baselineskip}{0.5\baselineskip}%
-  {\normalfont\bfseries}}
+  {\normalfont\fontsize{13}{15.6}\selectfont\bfseries}}
 \renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0pt}%
   {1\baselineskip}{0.25\baselineskip}%
-  {\normalfont\itshape}}
+  {\normalfont\fontsize{13}{15.6}\selectfont\itshape}}
 \makeatother
 
-\title{\textbf{Enhancing Brute Force Attack Detection in NIDS: A Hybrid Sampling and Ensemble Learning Approach}}
+\title{Enhancing Network Brute Force Attack Detection: A Hybrid Sampling and Ensemble Learning Approach}
 
 \author{
+\fontsize{12}{14.4}\selectfont
 Edward Aria Tanujaya\\
 Computer Science Department, School of Computer Science\\
 Bina Nusantara University, Jakarta, Indonesia 11480\\
-edward.tanujaya001@binus.ac.id
+edward.tanujaya001@binus.ac.id\\
+0009-0001-2374-7153
 \and
+\fontsize{12}{14.4}\selectfont
 Andrian Pratama\\
 Computer Science Department, School of Computer Science\\
 Bina Nusantara University, Jakarta, Indonesia 11480\\
 andrian.pratama@binus.ac.id
 \and
+\fontsize{12}{14.4}\selectfont
 Jeta Sunanda\\
 Computer Science Department, School of Computer Science\\
 Bina Nusantara University, Jakarta, Indonesia 11480\\
-jeta.sunanda@binus.ac.id
+jeta.sunanda@binus.ac.id\\
+0009-0003-7942-1667 
 \and
+\fontsize{12}{14.4}\selectfont
 Hidayaturrahman\\
 Computer Science Department, School of Computer Science\\
 Bina Nusantara University, Jakarta, Indonesia 11480\\
 hidayaturrahman@binus.ac.id
 \and
+\fontsize{12}{14.4}\selectfont
 Satriadi Putra Santika\\
 Computer Science Department, School of Computer Science\\
 Bina Nusantara University, Jakarta, Indonesia 11480\\
@@ -85,10 +109,10 @@ satriadi.santika@binus.ac.id
 
 \maketitle
 
-\section*{Abstract}
+\section{Abstract}
 Machine-learning-based Network Intrusion Detection Systems (NIDS) are widely used to detect malicious traffic, but their performance can degrade when attack classes are underrepresented. Previous studies have attempted to mitigate this through feature selection, sampling, and ensemble learning. However, this components are often failing to adequately address minority attacks. In dataset like CICIDS2017, Brute Force traffic remains difficult to detect because repeated authentication attempts closely resemble benign activity. This study focuses on Brute Force detection in the imbalanced CICIDS2017 dataset using a hybrid sampling and ensemble-learning pipeline. The proposed workflow maps CICIDS2017 labels into eight multiclass categories, limits the dominant Benign class, cleans invalid records, performs train-only feature selection using ANOVA \textit{SelectKBest} and correlation pruning, and applies SMOTE-Tomek only to the training partition. Two heterogeneous ensembles, soft voting and stacking, are then evaluated on an unseen test set. SMOTE-Tomek increased Brute Force training representation from 5,204 to 76,385 samples and reduced its imbalance ratio from 30.30:1 to 2.06:1. On the test set, soft voting achieved 98.73\% Brute Force precision, 92.78\% recall, and 95.66\% F1-score, while stacking achieved 98.28\% precision, 93.16\% recall, and 95.65\% F1-score. The results show that hybrid sampling and ensemble learning provide a practical strategy for Brute Force detection, although generalization beyond CICIDS2017 remains limited.
 
-\section*{Keywords}
+\section{Keywords}
 Network Intrusion Detection System, Brute Force Detection, CICIDS2017, SMOTE-Tomek, Ensemble Learning
 
 \section{INTRODUCTION}
@@ -127,7 +151,7 @@ Prior studies often emphasize either feature selection, sampling, or ensemble le
 
 \section{METHODOLOGY/DATA AND METHODS}
 
-This section describes the overall research workflow used to evaluate Brute Force detection in a multiclass NIDS setting. As shown in Figure~\ref{fig:method_pipeline}, the experiment begins with CICIDS2017 label mapping and Benign-class limitation, followed by data cleaning, numerical feature retention, stratified splitting, train-only feature selection, train-only SMOTE-Tomek resampling, ensemble model development, validation diagnostics, and final test evaluation. All leakage-sensitive steps were fitted only on the training partition, while validation and test data remained unresampled.
+This section describes the overall research workflow used to evaluate Brute Force detection in a multiclass NIDS. As shown in Figure~\ref{fig:method_pipeline}, the experiment begins with CICIDS2017 label mapping and Benign-class limitation, followed by data cleaning, numerical feature retention, stratified splitting, train-only feature selection, train-only SMOTE-Tomek resampling, ensemble model development, validation diagnostics, and final test evaluation. All leakage-sensitive steps were fitted only on the training partition, while validation and test data remained unresampled.
 
 \begin{figure}[H]
 \centering
@@ -176,15 +200,17 @@ XSS & 652 & 320 & 76,400 \\
 
 \subsection{Data Preprocessing}
 
-Data preprocessing consisted of five steps. First, infinite values were converted into missing values, missing entries were filled with zero, and duplicate rows were removed. Second, only numerical traffic-flow features were retained as model inputs. Third, eight zero-variance features were removed, leaving 70 non-constant numerical features. Fourth, the data was split using stratified sampling into 49\% training, 21\% validation, and 30\% testing. Fifth, labels were encoded after resampling so that validation and test labels used the same class mapping as the training data. No normalization or scaling was applied in the experiment. The validation set was used for intermediate diagnostics and model behavior checking, while the final ensemble results were reported on the unseen test set.
+Data preprocessing was done to ensure data quality and model robustness for dataset CICIDS 2017. Data cleaning involved remove the redudant entries and missing values to prevent bias on parameter estimation during training. The feature set was restricted to numerical attributes, in order to optimize the input for the ensemble model. 
+
+To preserve the original data distributions, a stratified sampling approach was used for both the initial train-test-validation (49\%/30\%/21\%) split, and followed by k-fold cross-validation. This ensures that the minority attack classes are proportionally represented, and preventing "fold-bias". Also, ensuring that the evaluation metrics accurately reflect the model's ability to detect rare intrusion events.
 
 \subsection{Feature Selection}
 
-Feature selection was fitted only on the training data to prevent validation or test leakage. ANOVA-based \textit{SelectKBest} with \textit{f\_classif} first retained the top 30 features because ANOVA ranks features based on their ability to separate class labels. Pearson correlation pruning then removed one feature from any pair with absolute correlation above 0.95 to reduce redundancy. This reduced 70 non-constant numerical features to 16 final features.
+ANOVA-based univariate selection (SelectKBest with \texttt{f\_classif}) was implemented to enhance model interpretability and mitigate the curse of dimensionality. This process only on the training partition to prevent data leakage, ensuring the validation and test sets remained unseen. SelectKBest with \texttt{f\_classif} was used to identify the top 30 features. This method was selected because it effectively ranks attributes by their statistical by separating discrete class labels, which is critical to identify distinct intrusion patterns. Pearson correlation pruning was used to the remaining features. By removing the redudant features if absolute correlation coefficient $|r| > 0.95$. This reduction from 70 to 16 features ensures the ensemble models focus on the most discriminative, and independent variables.
 
 \subsection{Imbalanced Data Handling}
 
-SMOTE-Tomek was applied only to the training partition after splitting. SMOTE increased minority-class samples using a target of 77,000 samples per class where applicable, with \textit{k\_neighbors}=2 and random seed 42; Tomek links then removed ambiguous borderline samples. As shown in Table~\ref{tab:class_dist}, Brute Force increased from 5,204 to 76,385 training samples, reducing its imbalance ratio against the majority class from 30.30:1 to 2.06:1.
+To determine the optimal sampling method, this research evaluated four sampling paradigms such as SMOTE, Tomek Links, SMOTE-Tomek, and the baseline no sampling, using a Decision Tree classifier. Evaluation shows that both SMOTE and SMOTE-Tomek achieved similiar overall F1-scores. While, SMOTE successfully solves the quantity problem by creating synthethic data, it sometimes creates syntetic pointes right in the middle of the majority class, which can lead overlapping. SMOTE-Tomek was selected as the sampling framework, by using Tomek links to remove those overlapping that was created by SMOTE.
 
 \subsection{Proposed Ensemble Models}
 
@@ -360,29 +386,23 @@ However, several limitations remain. First, the experiment used only CICIDS2017,
 
 \section{OPEN DATA}
 
-The dataset is available at:
-\url{https://www.kaggle.com/datasets/chethuhn/network-intrusion-dataset}.
-
-The source code used in this study is available at:
+The CICIDS-2017 dataset is publicly available via the CIC repository and can be obtained from the following website: 
+\url{https://www.unb.ca/cic/datasets/ids-2017.html}. The source code used in this study is publicly available via Github and can be obtained from the following website:
 \url{https://github.com/jetasunanda/Enhancing_Brute_Force_Attack_Detection}.
-
-\section{AUTHOR CONTRIBUTIONS}
-
-\textbf{Edward Aria Tanujaya} was responsible for writing the Introduction section and contributed jointly to the Results and Discussion, Conclusion, and final refinement of the research paper. \textbf{Jeta Sunanda} was responsible for writing the Related Works section and contributed jointly to the Results and Discussion, Conclusion, and final refinement of the research paper. \textbf{Andrian Pratama} was responsible for writing the Methodology section and contributed jointly to the Results and Discussion, Conclusion, and final refinement of the research paper. \textbf{Hidayaturrahman} and \textbf{Satriadi Putra Santika} supervised and guided the preparation of the research paper, including providing direction, feedback, and academic guidance throughout the writing and revision process.
 
 \printbibliography[title={REFERENCES}]
 
 \section{ACKNOWLEDGMENT}
 
-TODO: Add acknowledgments here if required by the conference or publisher.
+Due to lack publicly available source code related to our experiment that reference our methodologies, we design the framework of the project manually, and use AI tools to generate the full implementation. The process of planning, conceptualization, writing, design framework is human based while AI is used in technical execution. Also, the implementation of code based on AI was reviewed, debugged, and verified by the authors.
 
 \section{AUTHOR BIOGRAPHIES}
 
-\textbf{Edward Aria Tanujaya} (TODO: 100--150 words). Provide academic background, research interests, and publication history.
+\textbf{Edward Aria Tanujaya} is an undergraduate student in the Computer Science Program from Bina Nusantara University, Indonesia. Currently in his fourth semester,  He is focusing on the field of Cybersecurity, Software Engineering, and Machine Learning. He is currently interest on research such as Network Intrustion Detection Systems (NIDS), Machine Learning, Deep Learning, Ensemble Learning, with emphasis on addressing minority attack classes. Futhermore, he also explores topics on Human Computer Interaction (HCI), Software Architecture, and the optimization of Data Structures and Algorithms. He has been involved in developing research proposals and papers as part of his academic contributions to the field.
 
 \textbf{Andrian Pratama} (TODO: 100--150 words). Provide academic background, research interests, and publication history.
 
-\textbf{Jeta Sunanda} (TODO: 100--150 words). Provide academic background, research interests, and publication history.
+\textbf{Jeta Sunanda} is currently pursuing a Bachelor's degree in Computer Science at Bina Nusantara University. Driven by a deep curiosity for modern computing, Jeta focuses primarily on the intersection of software engineering, artificial intelligence, and cybersecurity. Throughout the undergraduate journey, Jeta has cultivated a strong foundation in these fields by actively engaging with contemporary research centered on machine learning, deep learning, and network security. This continuous exploration of complex algorithmic models and digital defense strategies has heavily shaped Jeta's current academic pursuits. This paper marks Jeta's debut in formal academic publishing, representing an important first step toward contributing practical, AI-driven solutions to the broader research community.
 
 \textbf{Hidayaturrahman} (TODO: 100--150 words). Provide academic background, research interests, and publication history.
 
