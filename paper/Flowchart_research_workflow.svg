@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="720" viewBox="0 0 1500 720">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#111111"/>
+    </marker>
+    <style>
+      .box { fill: #ffffff; stroke: #111111; stroke-width: 1.4; }
+      .line { stroke: #111111; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #111111; stroke-width: 1.4; stroke-dasharray: 7 5; fill: none; marker-end: url(#arrow); }
+      .title { font-family: "Times New Roman", Times, serif; font-size: 18px; font-weight: 700; fill: #111111; }
+      .text { font-family: "Times New Roman", Times, serif; font-size: 15px; fill: #111111; }
+      .small { font-family: "Times New Roman", Times, serif; font-size: 13px; fill: #111111; }
+      .label { font-family: "Times New Roman", Times, serif; font-size: 14px; font-style: italic; fill: #111111; }
+    </style>
+  </defs>
+
+  <rect width="1500" height="720" fill="#ffffff"/>
+
+  <!-- Main preprocessing sequence -->
+  <rect x="45" y="50" width="185" height="82" class="box"/>
+  <text x="137.5" y="78" class="title" text-anchor="middle">CICIDS2017</text>
+  <text x="137.5" y="102" class="text" text-anchor="middle">CSV flow records</text>
+  <text x="137.5" y="121" class="text" text-anchor="middle">78 features + label</text>
+
+  <rect x="270" y="50" width="205" height="82" class="box"/>
+  <text x="372.5" y="78" class="title" text-anchor="middle">Label Mapping</text>
+  <text x="372.5" y="102" class="text" text-anchor="middle">8 target classes</text>
+  <text x="372.5" y="121" class="text" text-anchor="middle">Benign capped at 100,000</text>
+
+  <rect x="515" y="50" width="200" height="82" class="box"/>
+  <text x="615" y="78" class="title" text-anchor="middle">Data Cleaning</text>
+  <text x="615" y="102" class="text" text-anchor="middle">NaN / inf handled</text>
+  <text x="615" y="121" class="text" text-anchor="middle">Duplicate rows removed</text>
+
+  <rect x="755" y="50" width="220" height="82" class="box"/>
+  <text x="865" y="78" class="title" text-anchor="middle">Numeric Features</text>
+  <text x="865" y="102" class="text" text-anchor="middle">Keep numeric columns</text>
+  <text x="865" y="121" class="text" text-anchor="middle">Remove zero-variance cols</text>
+
+  <rect x="1015" y="50" width="220" height="82" class="box"/>
+  <text x="1125" y="78" class="title" text-anchor="middle">Stratified Split</text>
+  <text x="1125" y="102" class="text" text-anchor="middle">Train 49% | Val 21%</text>
+  <text x="1125" y="121" class="text" text-anchor="middle">Test 30%</text>
+
+  <path d="M 230 91 L 270 91" class="line"/>
+  <path d="M 475 91 L 515 91" class="line"/>
+  <path d="M 715 91 L 755 91" class="line"/>
+  <path d="M 975 91 L 1015 91" class="line"/>
+
+  <!-- Training branch -->
+  <text x="60" y="204" class="label">Training branch</text>
+
+  <rect x="45" y="225" width="175" height="75" class="box"/>
+  <text x="132.5" y="253" class="title" text-anchor="middle">Train Set</text>
+  <text x="132.5" y="277" class="text" text-anchor="middle">256,673 samples</text>
+
+  <rect x="260" y="225" width="205" height="75" class="box"/>
+  <text x="362.5" y="253" class="title" text-anchor="middle">SelectKBest</text>
+  <text x="362.5" y="277" class="text" text-anchor="middle">f_classif, k = 30</text>
+
+  <rect x="505" y="225" width="205" height="75" class="box"/>
+  <text x="607.5" y="253" class="title" text-anchor="middle">Correlation Pruning</text>
+  <text x="607.5" y="277" class="text" text-anchor="middle">Drop if |r| &gt; 0.95</text>
+
+  <rect x="750" y="225" width="205" height="75" class="box"/>
+  <text x="852.5" y="253" class="title" text-anchor="middle">SMOTE-Tomek</text>
+  <text x="852.5" y="277" class="text" text-anchor="middle">Training set only</text>
+
+  <rect x="995" y="225" width="175" height="75" class="box"/>
+  <text x="1082.5" y="253" class="title" text-anchor="middle">Label Encoding</text>
+  <text x="1082.5" y="277" class="text" text-anchor="middle">8 encoded classes</text>
+
+  <rect x="1210" y="215" width="245" height="95" class="box"/>
+  <text x="1332.5" y="243" class="title" text-anchor="middle">Model Training</text>
+  <text x="1332.5" y="267" class="text" text-anchor="middle">Soft Voting: RF, XGBoost, KNN</text>
+  <text x="1332.5" y="286" class="text" text-anchor="middle">Stacking: RF, XGBoost, DT</text>
+  <text x="1332.5" y="305" class="small" text-anchor="middle">Meta-learner: Logistic Regression</text>
+
+  <path d="M 1125 132 L 1125 165 L 132.5 165 L 132.5 225" class="line"/>
+  <path d="M 220 262.5 L 260 262.5" class="line"/>
+  <path d="M 465 262.5 L 505 262.5" class="line"/>
+  <path d="M 710 262.5 L 750 262.5" class="line"/>
+  <path d="M 955 262.5 L 995 262.5" class="line"/>
+  <path d="M 1170 262.5 L 1210 262.5" class="line"/>
+
+  <!-- Baseline comparison branch -->
+  <rect x="505" y="350" width="255" height="70" class="box"/>
+  <text x="632.5" y="377" class="title" text-anchor="middle">No-Sampling Baseline</text>
+  <text x="632.5" y="401" class="text" text-anchor="middle">Same models without SMOTE-Tomek</text>
+  <path d="M 607.5 300 L 607.5 350" class="dash"/>
+
+  <!-- Validation branch -->
+  <text x="60" y="473" class="label">Validation branch</text>
+
+  <rect x="45" y="495" width="175" height="70" class="box"/>
+  <text x="132.5" y="522" class="title" text-anchor="middle">Validation Set</text>
+  <text x="132.5" y="546" class="text" text-anchor="middle">110,004 samples</text>
+
+  <rect x="260" y="495" width="245" height="70" class="box"/>
+  <text x="382.5" y="522" class="title" text-anchor="middle">Apply Fitted Feature Steps</text>
+  <text x="382.5" y="546" class="text" text-anchor="middle">No resampling</text>
+
+  <rect x="545" y="495" width="245" height="70" class="box"/>
+  <text x="667.5" y="522" class="title" text-anchor="middle">Validation Diagnostics</text>
+  <text x="667.5" y="546" class="text" text-anchor="middle">Classification report, curves</text>
+
+  <path d="M 1125 132 L 1125 455 L 132.5 455 L 132.5 495" class="line"/>
+  <path d="M 220 530 L 260 530" class="line"/>
+  <path d="M 505 530 L 545 530" class="line"/>
+  <path d="M 1332.5 310 L 1332.5 455 L 667.5 455 L 667.5 495" class="line"/>
+
+  <!-- Test branch -->
+  <text x="60" y="609" class="label">Test branch</text>
+
+  <rect x="45" y="630" width="175" height="70" class="box"/>
+  <text x="132.5" y="657" class="title" text-anchor="middle">Test Set</text>
+  <text x="132.5" y="681" class="text" text-anchor="middle">157,148 samples</text>
+
+  <rect x="260" y="630" width="245" height="70" class="box"/>
+  <text x="382.5" y="657" class="title" text-anchor="middle">Apply Fitted Feature Steps</text>
+  <text x="382.5" y="681" class="text" text-anchor="middle">No resampling</text>
+
+  <rect x="535" y="625" width="350" height="80" class="box"/>
+  <text x="710" y="653" class="title" text-anchor="middle">Final Test Evaluation</text>
+  <text x="710" y="676" class="text" text-anchor="middle">Accuracy, precision, recall, F1</text>
+  <text x="710" y="695" class="text" text-anchor="middle">FPR, ROC-AUC, confusion matrix</text>
+
+  <path d="M 1125 132 L 1125 590 L 132.5 590 L 132.5 630" class="line"/>
+  <path d="M 220 665 L 260 665" class="line"/>
+  <path d="M 505 665 L 535 665" class="line"/>
+  <path d="M 1332.5 310 L 1332.5 590 L 710 590 L 710 625" class="line"/>
+  <path d="M 760 385 L 990 385 L 990 590 L 710 590 L 710 625" class="dash"/>
+</svg>

@@ -1,0 +1,389 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{iftex}
+\usepackage{url}
+\usepackage{placeins}
+\usepackage{array}
+\usepackage{multirow}
+\ifXeTeX
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Times New Roman}
+\setmonofont{Courier New}
+\else
+\usepackage{times}
+\fi
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Enhancing Brute Force Attack Detection in NIDS: A Hybrid Sampling and Ensemble Learning Approach}
+
+\author{
+\makebox[\textwidth][c]{%
+\begin{minipage}[t]{0.30\textwidth}
+\centering
+{\normalsize Edward Aria Tanujaya}\\
+{\itshape Computer Science Department,}\\
+{\itshape School of Computer Science}\\
+Bina Nusantara University\\
+Jakarta, Indonesia 11480\\
+edward.tanujaya001@binus.ac.id
+\end{minipage}\hfill
+\begin{minipage}[t]{0.30\textwidth}
+\centering
+{\normalsize Andrian Pratama}\\
+{\itshape Computer Science Department,}\\
+{\itshape School of Computer Science}\\
+Bina Nusantara University\\
+Jakarta, Indonesia 11480\\
+andrian.pratama@binus.ac.id
+\end{minipage}\hfill
+\begin{minipage}[t]{0.30\textwidth}
+\centering
+{\normalsize Jeta Sunanda}\\
+{\itshape Computer Science Department,}\\
+{\itshape School of Computer Science}\\
+Bina Nusantara University\\
+Jakarta, Indonesia 11480\\
+jeta.sunanda@binus.ac.id
+\end{minipage}%
+}\\[1em]
+\makebox[\textwidth][c]{%
+\begin{minipage}[t]{0.30\textwidth}
+\centering
+{\normalsize Hidayaturrahman}\\
+{\itshape Computer Science Department}\\
+{\itshape School of Computer Science}\\
+Bina Nusantara University\\
+Jakarta, Indonesia 11480\\
+hidayaturrahman@binus.ac.id
+\end{minipage}\hspace{0.06\textwidth}
+\begin{minipage}[t]{0.30\textwidth}
+\centering
+{\normalsize Satriadi Putra Santika}\\
+{\itshape Computer Science Department}\\
+{\itshape School of Computer Science}\\
+Bina Nusantara University\\
+Jakarta, Indonesia 11480\\
+satriadi.santika@binus.ac.id
+\end{minipage}%
+}
+}
+
+\maketitle
+
+\begin{abstract}
+Machine-learning-based Network Intrusion Detection Systems (NIDS) are widely used to detect malicious traffic, but their performance can degrade when attack classes are underrepresented. Previous studies have attempted to mitigate this through feature selection, sampling, and ensemble learning. However, this components are often failing to adequately address minority attacks. In dataset like CICIDS2017, Brute Force traffic remains difficult to detect because repeated authentication attempts closely resemble benign activity. This study focuses on Brute Force detection in the imbalanced CICIDS2017 dataset using a hybrid sampling and ensemble-learning pipeline. The proposed workflow maps CICIDS2017 labels into eight multiclass categories, limits the dominant Benign class, cleans invalid records, performs train-only feature selection using ANOVA \textit{SelectKBest} and correlation pruning, and applies SMOTE-Tomek only to the training partition. Two heterogeneous ensembles, soft voting and stacking, are then evaluated on an unseen test set. SMOTE-Tomek increased Brute Force training representation from 5,204 to 76,385 samples and reduced its imbalance ratio from 30.30:1 to 2.06:1. On the test set, soft voting achieved 98.73\% Brute Force precision, 92.78\% recall, and 95.66\% F1-score, while stacking achieved 98.28\% precision, 93.16\% recall, and 95.65\% F1-score. The results show that hybrid sampling and ensemble learning provide a practical strategy for Brute Force detection, although generalization beyond CICIDS2017 remains limited.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Network Intrusion Detection System, Brute Force Detection, CICIDS2017, SMOTE-Tomek, Ensemble Learning
+\end{IEEEkeywords}
+
+% ============================================================
+\section{Introduction}
+% ============================================================
+
+Internet-based communication is now central to file sharing, remote access, and daily computing, but the same connectivity also expands the attack surface for private and organizational data. Recent threat reports show that cyberattacks continue to grow in both volume and stealth: malware-free detections increased from 62\% in 2021 to 71\% in 2022, while 75\% of attacks used to gain initial access were malware-free in 2023.\footnote{CrowdStrike Global Threat Reports, 2023 and 2024.} This trend shows that network defense requires detection mechanisms that can recognize suspicious behavior beyond known malware signatures.
+
+Intrusion Detection Systems (IDS) are security mechanisms that monitor system or network activity and generate alerts when malicious behavior is detected \cite{singh2022minority}. IDS can be categorized into Host-based IDS (HIDS) and Network-based IDS (NIDS). HIDS monitors host-level information such as logs and resource usage, while NIDS observes network traffic flows. In this study, NIDS is selected because network-flow monitoring is suitable for detecting attack behavior across communication traffic and can be managed more centrally than host-by-host monitoring \cite{almuhanna2025anomaly,irfaissurur2025web}.
+
+As network data continues to grow, traditional IDS approaches face difficulty in recognizing new or changing attack behavior. Machine learning and deep learning have therefore been used to improve NIDS because they can learn patterns from traffic data rather than relying only on fixed signatures \cite{almuhanna2025anomaly,ahmed2024explainable}. However, ML-based NIDS still has important weaknesses, including high false-positive rates, difficulty generalizing to imbalanced data, high computational cost from redundant features, and deployment challenges in real-time environments \cite{almuhanna2025anomaly,alsaffar2024shielding,alessa2024hybrid,yang2024imbalanced,prasad2025optimizing}.
+
+Previous studies have attempted to reduce these weaknesses through feature selection, sampling, and ensemble learning. Feature selection can remove redundant network-flow attributes, hybrid sampling can reduce class imbalance, and ensemble learning can combine diverse classifiers to improve robustness. However, these components are often evaluated separately or without sufficient focus on minority attacks. CICIDS2017 is a widely used NIDS benchmark that includes Brute Force traffic, but its class distribution is highly imbalanced, making minority-attack detection difficult \cite{khan2024balanced,irfaissurur2025web,le2024unbalanced,harini2023minority}.
+
+Hybrid sampling methods such as SMOTE-Tomek address imbalance by combining minority oversampling with majority or boundary cleaning \cite{khan2024balanced,le2024unbalanced,nassreddine2025ensemble}. Nevertheless, Brute Force traffic remains difficult because repeated authentication attempts may resemble legitimate user behavior, leading to false alarms or missed detections when a single classifier is used \cite{rihan2023iot,irfaissurur2025web}. This study therefore evaluates whether train-only SMOTE-Tomek, selected flow features, and heterogeneous ensemble learning can improve Brute Force detection in a multiclass NIDS setting.
+
+% Contribution template: refine the wording below if the final submission needs stricter novelty claims.
+The main contributions of this study are: (1) an integrated CICIDS2017 pipeline that combines label consolidation, Benign-class limitation, train-only feature selection, and SMOTE-Tomek resampling; (2) a comparison of soft voting and stacking ensembles for Brute Force detection; and (3) a Brute-Force-centered evaluation using class-wise metrics, false positive rate, and validation diagnostics for individual baseline classifiers.
+
+% ============================================================
+\section{Related Works}
+% ============================================================
+
+As global connectivity grows, Intrusion Detection Systems (IDS) increasingly rely on machine learning to tackle technical hurdles like high dimensionality and class imbalance. Recent experimental studies typically focus on three areas: feature selection, hybrid sampling, and ensemble learning. Examining these experiments identifies the gaps necessary to develop a hybrid approach that improves the detection of minority attacks, such as Brute Force.
+
+\subsection{Feature Selection and Dimensionality Reduction in NIDS}
+
+Feature selection is important in NIDS because redundant flow attributes can increase training cost and weaken generalization \cite{nassreddine2025ensemble,alsaffar2024shielding,khan2024balanced,selvakumar2025feature,yu2025attack}. Nassreddine et al.\ \cite{nassreddine2025ensemble} used correlation-based and embedded XGBoost feature selection, retained 10 features, and applied KNN-DT-RF-XGBoost stacking, achieving 99.97\% accuracy and 99.93\% F1-score on CIC-IDS2017. Alsaffar et al.\ \cite{alsaffar2024shielding} proposed MI-Boruta with RF-XGBoost-CatBoost-MLP stacking, reaching 99.92\% multiclass accuracy on CICIDS2017. Khan et al.\ \cite{khan2024balanced} used SelectKBest, correlation reduction, SMOTE-Tomek, and conventional classifiers, where Decision Tree and AdaBoost reached 96.37\% accuracy and 96.33\% F1-score for multiclass classification. These results show that feature selection is a necessary first stage before modeling high-dimensional traffic data.
+
+\subsection{Handling Imbalanced Datasets Using Hybrid Sampling}
+
+Hybrid sampling is widely used to increase minority-class exposure while reducing ambiguous or noisy samples \cite{harini2023minority,yang2024imbalanced,prasad2025optimizing}. Hooshmand et al.\ \cite{hooshmand2024robust} proposed SKM-XGB, which combines SMOTE with K-means undersampling before XGBoost classification, achieving 97.49\% multiclass detection on UNSW-NB15 and 99.22\% on NSL-KDD. Khan et al.\ \cite{khan2024balanced} balanced CICIDS2017 using SMOTE-Tomek and reported 96.37\% multiclass accuracy with Decision Tree and AdaBoost. Nassreddine et al.\ \cite{nassreddine2025ensemble} also used SMOTE-Tomek before stacking and obtained 99.97\% accuracy and 99.93\% F1-score on CIC-IDS2017. These findings motivate the use of SMOTE-Tomek for Brute Force traffic, but sampling must be applied only to training data to avoid leakage into validation and testing.
+
+\subsection{Ensemble Learning Approaches for Intrusion Detection}
+
+Ensemble learning is effective for IDS because diverse classifiers can reduce the weakness of any single learner \cite{emanet2023voting,pramanick2025stacking,wardana2024collaborative,gu2025semisupervised,alsubaei2025smart}. Farooqi et al.\ \cite{farooqi2024enhancing} proposed a voting ensemble of Decision Tree, Random Forest, and XGBoost, achieving 99.98\% accuracy on CIC-IDS2017 with a very low false positive rate. Urmi et al.\ \cite{urmi2024stacked} used RF, XGBoost, and Extra Trees with Logistic Regression stacking, reporting 99.90\% accuracy and 99.80\% F1-score on CICIDS2017. Al Essa and Bhaya\ \cite{alessa2024hybrid} combined RF, XGBoost, and MLP using voting and stacking, where soft voting reached 99.9\% accuracy and 99.8\% F1-score on InSDN. These studies justify the selection of Random Forest, Decision Tree, XGBoost, KNN, and Logistic Regression as baseline or ensemble components in this study.
+
+\subsection{Research Gap}
+
+Prior studies often emphasize either feature selection, sampling, or ensemble learning, while fewer studies report how these components interact for Brute Force detection under a multiclass setting. Rare-class and cross-domain experiments also show that limited attack support and distribution shift remain active NIDS challenges \cite{xu2025fewshot,wardana2024collaborative}. This study addresses that gap by combining train-only ANOVA feature selection, correlation pruning, SMOTE-Tomek, and two ensemble strategies, with the interpretation centered on Brute Force precision, recall, F1-score, and false positive behavior.
+
+% ============================================================
+\section{Methodology}
+% ============================================================
+
+This section describes the overall research workflow used to evaluate Brute Force detection in a multiclass NIDS setting. As shown in Fig.~\ref{fig:method_pipeline}, the experiment begins with CICIDS2017 label mapping and Benign-class limitation, followed by data cleaning, numerical feature retention, stratified splitting, train-only feature selection, train-only SMOTE-Tomek resampling, ensemble model development, validation diagnostics, and final test evaluation. All leakage-sensitive steps were fitted only on the training partition, while validation and test data remained unresampled.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.95\linewidth]{Flowchart}
+\caption{Overall research workflow from dataset preparation to final evaluation.}
+\label{fig:method_pipeline}
+\end{figure}
+
+\subsection{Dataset}
+
+CICIDS2017 is a public benchmark from the Canadian Institute for Cybersecurity, University of New Brunswick, containing 2,830,743 labeled bidirectional flow records with 78 features and one label \cite{khan2024balanced,nassreddine2025ensemble}. The raw labels were consolidated into eight categories: \texttt{BENIGN} to Benign; \texttt{Bot} to Bot; DoS labels, \texttt{DDoS}, and \texttt{Heartbleed} to DDoS; \texttt{PortScan} to Port Scan; \texttt{Infiltration} to Infiltrations; Patator and Web Attack-Brute Force labels to Brute Force; XSS labels to XSS; and \texttt{Sql Injection} to SQL-Injection. No labels were dropped after mapping. To reduce normal-traffic dominance while retaining attack samples, Benign was randomly limited to 100,000 records using random seed 42. The resulting class counts are shown in Table~\ref{tab:class_dist}.
+
+
+\begin{table}[htbp]
+\caption{Class Distribution Across Main Processing Stages}
+\label{tab:class_dist}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{|l|r|r|r|}
+\hline
+\textbf{Label} & \textbf{Cleaned} & \textbf{Train Before} & \textbf{Train After} \\
+\hline
+Benign & 97,947 & 47,994 & 76,724 \\
+\hline
+Bot & 1,953 & 957 & 76,996 \\
+\hline
+Brute Force & 10,622 & 5,204 & 76,385 \\
+\hline
+DDoS & 321,775 & 157,669 & 157,551 \\
+\hline
+Infiltrations & 36 & 17 & 77,000 \\
+\hline
+Port Scan & 90,819 & 44,501 & 76,842 \\
+\hline
+SQL-Injection & 21 & 11 & 76,999 \\
+\hline
+XSS & 652 & 320 & 76,400 \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\subsection{Data Preprocessing}
+
+Data preprocessing consisted of five steps. First, infinite values were converted into missing values, missing entries were filled with zero, and duplicate rows were removed. Second, only numerical traffic-flow features were retained as model inputs. Third, eight zero-variance features were removed, leaving 70 non-constant numerical features. Fourth, the data was split using stratified sampling into 49\% training, 21\% validation, and 30\% testing. Fifth, labels were encoded after resampling so that validation and test labels used the same class mapping as the training data. No normalization or scaling was applied in the experiment. The validation set was used for intermediate diagnostics and model behavior checking, while the final ensemble results were reported on the unseen test set.
+
+\subsection{Feature Selection}
+
+Feature selection was fitted only on the training data to prevent validation or test leakage. ANOVA-based \textit{SelectKBest} with \textit{f\_classif} first retained the top 30 features because ANOVA ranks features based on their ability to separate class labels. Pearson correlation pruning then removed one feature from any pair with absolute correlation above 0.95 to reduce redundancy. This reduced 70 non-constant numerical features to 16 final features.
+
+\subsection{Imbalanced Data Handling}
+
+SMOTE-Tomek was applied only to the training partition after splitting. SMOTE increased minority-class samples using a target of 77,000 samples per class where applicable, with \textit{k\_neighbors}=2 and random seed 42; Tomek links then removed ambiguous borderline samples. As shown in Table~\ref{tab:class_dist}, Brute Force increased from 5,204 to 76,385 training samples, reducing its imbalance ratio against the majority class from 30.30:1 to 2.06:1.
+
+\subsection{Proposed Ensemble Models}
+
+Two ensemble models were trained. The soft voting ensemble used Random Forest, XGBoost, and KNN, combining predicted probabilities by averaging with \texttt{n\_jobs}=1. The stacking ensemble used Random Forest, XGBoost, and Decision Tree as base learners, with Logistic Regression as the meta-learner, five-fold internal cross-validation, and \texttt{n\_jobs}=1. Random Forest used 300 trees, maximum depth 20, balanced class weights, random seed 42, and \texttt{n\_jobs}=-1. XGBoost used 300 estimators, maximum depth 8, learning rate 0.05, subsample 0.8, column subsample 0.8, histogram tree method, \texttt{device=cuda}, \texttt{mlogloss}, and random seed 42. Decision Tree used maximum depth 20, balanced class weights, and random seed 42. Logistic Regression used \(C=0.5\), maximum iteration 2000, balanced class weights, random seed 42, and \texttt{n\_jobs}=-1. KNN used \(k=3\), Euclidean distance, and \texttt{n\_jobs}=-1.
+These components were selected because prior NIDS studies reported strong results using tree-based learners, boosting, KNN, voting, and stacking for imbalanced intrusion detection \cite{farooqi2024enhancing,urmi2024stacked,nassreddine2025ensemble}.
+
+\subsection{Experimental Setup}
+
+The experiment was run in Google Colab using Python 3 and an NVIDIA L4 GPU. The notebook installed \texttt{imbalanced-learn}, \texttt{xgboost} \(\geq\) 2.0.0, \texttt{seaborn}, and \texttt{joblib} when needed, but exact package versions were not recorded. All stochastic stages used random seed 42 where supported.
+
+\subsection{Evaluation Metrics}
+
+The evaluation used accuracy, precision, recall, per-class F1-score, false positive rate (FPR), macro-averaged F1-score, and macro one-vs-rest ROC-AUC. In the one-vs-rest setting, each class was treated as the positive class in turn, with \(\mathrm{TP}\), \(\mathrm{TN}\), \(\mathrm{FP}\), and \(\mathrm{FN}\) denoting true positives, true negatives, false positives, and false negatives. The metrics were computed as follows:
+
+\noindent\textbf{1. Accuracy:} Accuracy measures the proportion of correct predictions, including true positives and true negatives, to the total number of instances.
+\begin{equation}
+\mathrm{Accuracy} = \frac{\mathrm{TP}+\mathrm{TN}}{\mathrm{TP}+\mathrm{TN}+\mathrm{FP}+\mathrm{FN}}
+\label{eq:accuracy}
+\end{equation}
+
+\noindent\textbf{2. Precision:} Precision measures the proportion of correctly predicted attacks to all samples predicted as attacks.
+\begin{equation}
+\mathrm{Precision} = \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}
+\label{eq:precision}
+\end{equation}
+
+\noindent\textbf{3. Recall:} Recall measures the proportion of correctly predicted positive instances out of all actual positive instances.
+\begin{equation}
+\mathrm{Recall} = \frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}
+\label{eq:recall}
+\end{equation}
+
+\noindent\textbf{4. F1-score:} F1-score is the harmonic mean of precision and recall.
+\begin{equation}
+\mathrm{F1} = \frac{2 \times \mathrm{Precision} \times \mathrm{Recall}}{\mathrm{Precision}+\mathrm{Recall}}
+\label{eq:f1}
+\end{equation}
+
+\noindent\textbf{5. False Positive Rate:} FPR measures the proportion of negative instances that are incorrectly predicted as positive.
+\begin{equation}
+\mathrm{FPR} = \frac{\mathrm{FP}}{\mathrm{FP}+\mathrm{TN}}
+\label{eq:fpr}
+\end{equation}
+Because accuracy can hide weak minority-class detection, the discussion emphasizes Brute Force precision, recall, F1-score, and FPR.
+
+\FloatBarrier
+
+% ============================================================
+\section{Results and Discussion}
+% ============================================================
+
+This section reports and interprets the test-set results, validation diagnostics, and feature-contribution findings. The discussion does not only describe the numerical values, but also explains what the results mean, relates them to previous NIDS studies, and identifies their practical implications for Brute Force detection as the main minority class of interest.
+
+\subsection{Overall Ensemble Performance}
+
+Table~\ref{tab:overall_ensemble_results} summarizes the final test performance of the proposed ensembles. Both models achieved very high macro accuracy, with soft voting reaching 99.9337\% and stacking reaching 99.9349\%. However, the macro-averaged precision, recall, F1-score, and ROC-AUC show a clearer difference between the two approaches. Soft voting achieved higher macro precision, recall, F1-score, and ROC-AUC, while stacking produced slightly higher macro accuracy and slightly lower macro FPR. This means that accuracy alone is not sufficient for interpreting performance in an imbalanced multiclass NIDS setting, because a model can maintain high accuracy while still showing weaker class-balanced behavior.
+
+The stronger macro F1-score and ROC-AUC of soft voting indicate that probability-level averaging produced more stable decisions across classes, whereas stacking remained competitive mainly in overall correctness and false-positive control. This result is consistent with previous ensemble-based IDS studies, which show that voting and stacking can improve intrusion detection by combining diverse classifiers, but their advantages depend on the metric and attack distribution being evaluated \cite{farooqi2024enhancing,urmi2024stacked,alessa2024hybrid,nassreddine2025ensemble}. The implication is that ensemble selection should be based on the operational goal rather than accuracy alone. Consequently, soft voting is more suitable when balanced multiclass detection is the priority, while stacking remains a viable option when slightly higher overall accuracy and lower macro FPR are preferred.
+
+\begin{table}[!htbp]
+\caption{Overall Test Performance of the Proposed Ensemble Models}
+\label{tab:overall_ensemble_results}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Model}}} &
+\multicolumn{6}{c|}{\textbf{Macro-Averaged Test Metrics}} \\
+\cline{2-7}
+\multicolumn{1}{|c|}{} &
+\multicolumn{1}{c|}{\textbf{Acc.}} &
+\multicolumn{1}{c|}{\textbf{Prec.}} &
+\multicolumn{1}{c|}{\textbf{Rec.}} &
+\multicolumn{1}{c|}{\textbf{F1}} &
+\multicolumn{1}{c|}{\textbf{FPR}} &
+\multicolumn{1}{c|}{\textbf{ROC-AUC}} \\
+\hline
+Soft Voting & 99.9337\% & 86.05\% & 89.01\% & 86.21\% & 0.0376\% & 99.9803\% \\
+\hline
+Stacking    & 99.9349\% & 85.37\% & 86.26\% & 84.72\% & 0.0364\% & 97.9917\% \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\subsection{Brute Force Detection Performance}
+
+Table~\ref{tab:bf_detection_results} shows that SMOTE-Tomek affected Brute Force detection differently depending on the ensemble model. In soft voting, SMOTE-Tomek increased Brute Force precision from 96.29\% to 98.73\% and reduced FPR from 0.0773\% to 0.0247\%, but recall decreased from 96.86\% to 92.78\%. This means that soft voting became more conservative after resampling: it produced fewer false Brute Force alarms, but it also missed more actual Brute Force samples. In stacking, SMOTE-Tomek increased recall from 91.31\% to 93.16\% and F1-score from 94.97\% to 95.65\%, although FPR increased from 0.0201\% to 0.0338\%. This means that stacking benefited from the additional minority-class representation by detecting more Brute Force samples, but the improvement came with a small increase in false alarms.
+
+These results support previous findings that hybrid sampling can improve minority-attack recognition, but its effect is not uniform across classifiers or metrics \cite{khan2024balanced,le2024unbalanced,nassreddine2025ensemble,harini2023minority}. In this study, SMOTE-Tomek reduced the imbalance pressure on the Brute Force class, yet the final trade-off still depended on how each ensemble used the resampled training distribution. The implication is that resampling should not be evaluated only by whether it increases one metric; it must also be assessed through precision, recall, F1-score, and FPR together. Consequently, soft voting with SMOTE-Tomek is preferable when avoiding false Brute Force alarms is more important, while stacking with SMOTE-Tomek is more suitable when improving Brute Force recall and F1-score is the main objective.
+
+\begin{table}[!htbp]
+\caption{Brute Force Test Performance with and without SMOTE-Tomek}
+\label{tab:bf_detection_results}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{|l|l|r|r|r|r|}
+\hline
+\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Model}}} &
+\multicolumn{1}{c|}{\multirow{2}{*}{\textbf{Sampling Strategy}}} &
+\multicolumn{4}{c|}{\textbf{Brute Force Test Metrics}} \\
+\cline{3-6}
+ & & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} & \textbf{FPR} \\
+\hline
+Soft Voting & No Sampling  & 96.29\% & 96.86\% & 96.57\% & 0.0773\% \\
+\hline
+Soft Voting & SMOTE-Tomek  & 98.73\% & 92.78\% & 95.66\% & 0.0247\% \\
+\hline
+Stacking    & No Sampling  & 98.95\% & 91.31\% & 94.97\% & 0.0201\% \\
+\hline
+Stacking    & SMOTE-Tomek  & 98.28\% & 93.16\% & 95.65\% & 0.0338\% \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\subsection{Individual Classifier Diagnostics}
+
+Table~\ref{tab:validation_baselines} reports validation diagnostics for individual classifiers trained with SMOTE-Tomek. These values are not final test baselines, but they help explain why ensemble learning was used. XGBoost obtained the highest validation macro F1-score at 85.35\% and the lowest log loss at 0.0104, indicating the strongest overall validation behavior among the individual classifiers. However, the Brute Force-specific results show that no single classifier dominated all criteria. Random Forest and Decision Tree produced Brute Force F1-scores above 94\%, while KNN achieved the highest Brute Force recall at 92.20\%.
+
+The meaning of this pattern is that individual classifiers captured useful but different decision behavior. KNN was sensitive to Brute Force samples, but its high log loss of 0.4115 and lower macro F1-score of 65.65\% indicate weaker probability reliability and less consistent multiclass performance. This supports the motivation for ensemble learning in IDS, where diverse learners are combined to reduce dependence on the weaknesses of a single classifier \cite{farooqi2024enhancing,urmi2024stacked,alessa2024hybrid,pramanick2025stacking}. The implication is that strong individual validation scores are useful diagnostics, but they do not replace final ensemble evaluation on the unseen test set. Consequently, the final claims of this study should be interpreted as evidence for the proposed soft voting and stacking configurations rather than as a complete comparison of standalone classifiers.
+
+\begin{table}[!htbp]
+\caption{Validation Diagnostics for Individual Classifiers}
+\label{tab:validation_baselines}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Model}}} &
+\multicolumn{4}{c|}{\textbf{Validation Diagnostics}} \\
+\cline{2-5} 
+\multicolumn{1}{|c|}{} &
+\multicolumn{1}{c|}{\textbf{Log Loss}} &
+\multicolumn{1}{c|}{\textbf{Macro F1}} &
+\multicolumn{1}{c|}{\textbf{BF F1}} &
+\multicolumn{1}{c|}{\textbf{BF Recall}} \\
+\hline
+Random Forest & 0.0178 & 83.70\% & 94.65\% & 91.98\% \\
+\hline
+XGBoost & 0.0104 & 85.35\% & 94.09\% & 89.51\% \\
+\hline
+KNN & 0.4115 & 65.65\% & 92.76\% & 92.20\% \\
+\hline
+Decision Tree & 0.0763 & 84.78\% & 94.51\% & 91.84\% \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\subsection{Feature Contribution}
+
+Permutation-importance diagnostics indicated that Destination Port was the strongest Brute Force feature in both ensembles, followed by initial TCP window-byte features, flow duration, and packet-length statistics. This result means that the models did not rely only on abstract statistical separation, but also used features that are behaviorally plausible for Brute Force detection. Repeated authentication attempts often target specific services and can create traffic patterns related to service ports, connection duration, packet size, and TCP behavior.
+
+This interpretation is consistent with previous cybersecurity studies that describe Brute Force and web attack detection as behavior-driven problems, where repeated access attempts and flow-level traffic characteristics can help distinguish malicious activity from benign traffic \cite{rihan2023iot,irfaissurur2025web}. The implication is that the proposed ensembles learned patterns that are understandable in the context of network behavior, which strengthens the practical credibility of the results. However, the consequence is that these feature contributions may still be specific to CICIDS2017 traffic characteristics, so validation on newer or different datasets is needed before claiming broader generalization.
+
+\section{Conclusion}
+
+This study presented a compact multiclass NIDS pipeline for Brute Force detection using CICIDS2017. Train-only SMOTE-Tomek substantially improved Brute Force representation, and the ensemble results showed strong Brute Force F1-scores above 95\%. Soft voting was stronger for false-positive control, while stacking gained more from SMOTE-Tomek in recall and F1-score. Future work should validate the pipeline on additional datasets, record exact dependency versions, and evaluate the impact of train-only feature scaling on distance-based and linear components.
+
+However, several limitations remain. First, the experiment used only CICIDS2017, so the results may not generalize to newer or different network environments, which is a known concern in ML-based NIDS evaluation \cite{sarhan2021standard,wardana2024collaborative,gu2025semisupervised}. Second, SMOTE-Tomek did not consistently improve all non-target minority classes. After resampling, XSS still had low precision, with 38.70\% for soft voting and 39.23\% for stacking, although its F1-score increased from 45.88\% to 52.70\% and from 48.88\% to 52.31\%, respectively. SQL-Injection also remained weak, with only 61.54\% F1-score for soft voting and 50.00\% for stacking on six test samples. Infiltrations reached 84.21\% F1-score in both ensembles, but this result was based on only 11 test samples. These results suggest that synthetic resampling helped the main Brute Force target more reliably than extremely small or behaviorally different minority classes. Third, SMOTE-Tomek may introduce synthetic-sample bias, especially for classes with very small original support such as SQL-Injection and Infiltrations. Fourth, exact package versions from the Colab runtime were not recorded. Fifth, no feature scaling or normalization was applied, which may affect KNN and Logistic Regression behavior. Finally, individual classifiers were available as validation diagnostics only, so the final test claims should be interpreted as evidence for the proposed ensemble configurations rather than a complete single-classifier test comparison.
+
+
+\FloatBarrier
+
+% ============================================================
+\section*{Open Data}
+% ============================================================
+
+The dataset is available at:
+\url{https://www.kaggle.com/datasets/chethuhn/network-intrusion-dataset}.
+
+The source code used in this study is available at:
+\url{https://github.com/jetasunanda/Enhancing_Brute_Force_Attack_Detection}.
+
+
+% ============================================================
+\section*{Author Contributions}
+% ============================================================
+
+\textbf{Edward Aria Tanujaya} was responsible for writing the Introduction section and contributed jointly to the Results and Discussion, Conclusion, and final refinement of the research paper. \textbf{Jeta Sunanda} was responsible for writing the Related Works section and contributed jointly to the Results and Discussion, Conclusion, and final refinement of the research paper. \textbf{Andrian Pratama} was responsible for writing the Methodology section and contributed jointly to the Results and Discussion, Conclusion, and final refinement of the research paper. \textbf{Hidayaturrahman} and \textbf{Satriadi Putra Santika} supervised and guided the preparation of the research paper, including providing direction, feedback, and academic guidance throughout the writing and revision process. 
+
+
+% ============================================================
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

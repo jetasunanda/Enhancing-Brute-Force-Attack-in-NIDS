@@ -1,0 +1,93 @@
+<mxfile host="app.diagrams.net" modified="2026-05-25T00:00:00.000Z" agent="Codex" version="24.7.17">
+  <diagram id="simple-workflow" name="Simple Research Workflow">
+    <mxGraphModel dx="1500" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="720" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="dataset" value="CICIDS2017&#xa;CSV flow records&#xa;78 features + label" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="45" y="50" width="185" height="82" as="geometry"/>
+        </mxCell>
+        <mxCell id="label" value="Label Mapping&#xa;8 target classes&#xa;Benign capped at 100,000" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="270" y="50" width="205" height="82" as="geometry"/>
+        </mxCell>
+        <mxCell id="clean" value="Data Cleaning&#xa;NaN / inf handled&#xa;Duplicate rows removed" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="515" y="50" width="200" height="82" as="geometry"/>
+        </mxCell>
+        <mxCell id="numeric" value="Numeric Features&#xa;Keep numeric columns&#xa;Remove zero-variance cols" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="755" y="50" width="220" height="82" as="geometry"/>
+        </mxCell>
+        <mxCell id="split" value="Stratified Split&#xa;Train 49% | Val 21%&#xa;Test 30%" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="50" width="220" height="82" as="geometry"/>
+        </mxCell>
+        <mxCell id="trainLabel" value="Training branch" style="text;html=0;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontFamily=Times New Roman;fontSize=14;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="186" width="160" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="train" value="Train Set&#xa;256,673 samples" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="45" y="225" width="175" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="kbest" value="SelectKBest&#xa;f_classif, k = 30" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="260" y="225" width="205" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="corr" value="Correlation Pruning&#xa;Drop if |r| &gt; 0.95" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="505" y="225" width="205" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="smote" value="SMOTE-Tomek&#xa;Training set only" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="750" y="225" width="205" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="encoder" value="Label Encoding&#xa;8 encoded classes" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="995" y="225" width="175" height="75" as="geometry"/>
+        </mxCell>
+        <mxCell id="model" value="Model Training&#xa;Soft Voting: RF, XGBoost, KNN&#xa;Stacking: RF, XGBoost, DT&#xa;Meta-learner: Logistic Regression" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="215" width="245" height="95" as="geometry"/>
+        </mxCell>
+        <mxCell id="baseline" value="No-Sampling Baseline&#xa;Same models without SMOTE-Tomek" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="505" y="350" width="255" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="valLabel" value="Validation branch" style="text;html=0;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontFamily=Times New Roman;fontSize=14;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="455" width="160" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="val" value="Validation Set&#xa;110,004 samples" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="45" y="495" width="175" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="valTransform" value="Apply Fitted Feature Steps&#xa;No resampling" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="260" y="495" width="245" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="valEval" value="Validation Diagnostics&#xa;Classification report, curves" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="545" y="495" width="245" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="testLabel" value="Test branch" style="text;html=0;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontFamily=Times New Roman;fontSize=14;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="60" y="591" width="160" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="test" value="Test Set&#xa;157,148 samples" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="45" y="630" width="175" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="testTransform" value="Apply Fitted Feature Steps&#xa;No resampling" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="260" y="630" width="245" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="testEval" value="Final Test Evaluation&#xa;Accuracy, precision, recall, F1&#xa;FPR, ROC-AUC, confusion matrix" style="whiteSpace=wrap;html=0;rounded=0;fillColor=#ffffff;strokeColor=#111111;fontFamily=Times New Roman;fontSize=15;" vertex="1" parent="1">
+          <mxGeometry x="535" y="625" width="350" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="dataset" target="label"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="label" target="clean"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="clean" target="numeric"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="numeric" target="split"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="split" target="train"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="train" target="kbest"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="kbest" target="corr"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="corr" target="smote"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="smote" target="encoder"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="encoder" target="model"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e11" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.4;dashed=1;" edge="1" parent="1" source="corr" target="baseline"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e12" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="split" target="val"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e13" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="val" target="valTransform"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e14" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="valTransform" target="valEval"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e15" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="model" target="valEval"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e16" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="split" target="test"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e17" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="test" target="testTransform"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e18" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="testTransform" target="testEval"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e19" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.5;" edge="1" parent="1" source="model" target="testEval"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e20" style="endArrow=block;html=0;rounded=0;strokeColor=#111111;strokeWidth=1.4;dashed=1;" edge="1" parent="1" source="baseline" target="testEval"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
