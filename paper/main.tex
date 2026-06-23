@@ -246,9 +246,57 @@ Because accuracy can hide weak minority-class detection, the discussion emphasiz
 \section{Results and Discussion}
 % ============================================================
 
+This section presents the experimental results, focusing on the impact of class balancing, selected flow features, and classifier performance. To effectively evaluate minority-attack detection, the analysis emphasizes macro-level metrics such as macro F1-score, precision, recall, and Brute-Force-specific results over overall accuracy.
+
+\subsection{Effect of Hybrid Sampling on Class Representation}
+
+To determine the optimal sampling strategy, five-fold validation was conducted using a Decision Tree classifier. As shown in Table~\ref{tab:sampling_selection_macro}, among the evaluated techniques, SMOTE-Tomek achieved the strongest macro F1-score (83.83\%), macro precision (83.85\%), macro recall (89.10\%), and macro ROC-AUC (94.99\%). While Tomek Links produced the lowest macro FPR, its macro F1-score was lower than the baseline, indicating that cleaning majority-boundary samples alone is insufficient without increasing minority exposure. 
+
+\begin{table}[htbp]
+\caption{Sampling Method Selection Based on Validation Macro Performance}
+\label{tab:sampling_selection_macro}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{|l|r|r|r|r|r|r|}
+\hline
+\textbf{Sampling Method} & \textbf{Macro Acc.} & \textbf{Macro Prec.} & \textbf{Macro Rec.} & \textbf{Macro F1} & \textbf{Macro FPR} & \textbf{Macro ROC-AUC} \\
+\hline
+No Sampling & 99.92\% & 80.05\% & 88.09\% & 82.02\% & 0.0484\% & 94.35\% \\
+\hline
+SMOTE & 99.91\% & 82.86\% & 88.41\% & 82.99\% & 0.0519\% & 94.60\% \\
+\hline
+SMOTE-Tomek & 99.91\% & 83.85\% & 89.10\% & 83.83\% & 0.0508\% & 94.99\% \\
+\hline
+Tomek & 99.93\% & 79.65\% & 86.43\% & 81.20\% & 0.0450\% & 93.42\% \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+SMOTE-Tomek proved superior by combining synthetic minority oversampling with Tomek-link cleaning. In the training partition, Brute Force samples increased significantly from 5,204 to 76,385. This reduced the imbalance ratio against DDoS, the largest attack class, from approximately 30.30:1 to 2.06:1. Consequently, SMOTE-Tomek was selected as the most appropriate method because it substantially improved minority-attack representation without discarding the dataset's multiclass structure.
+
+\subsection{Selected Flow Features and Detection Meaning}
+
+The feature selection process, combining ANOVA \textit{SelectKBest} and correlation pruning, reduced the feature space from 70 to 16 attributes. Permutation importance revealed that Destination Port was the most influential feature. The remaining features were categorized into TCP window behavior, timing behavior, packet behavior, and TCP flag behavior. These features directly reflect the nature of Brute Force attacks, which typically target specific services repeatedly and exhibit regular timing patterns. This demonstrates that the model leverages meaningful network behaviors rather than relying solely on volume-driven anomalies, thereby enhancing both performance and interpretability.
+
+\subsection{Final Model Evaluation}
+
+The proposed pipeline combined SMOTE-Tomek, feature selection, and ensemble learning (Stacking and Soft Voting) to build a robust detection model. The final model achieved strong detection rates for Brute Force, Benign, DDoS, Bot, and Port Scan traffic. However, its performance was less stable for extremely small classes such as SQL-Injection and Infiltrations. 
+
+Comparing the ensemble strategies, the Stacking Ensemble provided the highest macro F1-score and better false-positive control compared to the Soft Voting approach. Thus, the Stacking Ensemble combined with SMOTE-Tomek was selected as the primary model.
+
 % ============================================================
 \section{Conclusion}
 % ============================================================
+
+This study proposed a comprehensive pipeline to enhance Brute Force Attack Detection in a multiclass Network Intrusion Detection System (NIDS) using the CICIDS2017 dataset. The proposed workflow integrated label consolidation, train-only feature selection, SMOTE-Tomek hybrid sampling, and ensemble learning. This multi-stage approach successfully addressed the challenges of redundant features, severe class imbalance, and the reliance on a single classifier, without violating experimental integrity through data leakage.
+
+SMOTE-Tomek significantly expanded the Brute Force training representation, successfully managing the severe imbalance ratio. Consequently, the Stacking Ensemble combined with SMOTE-Tomek was selected as the primary model for its superior balance between maintaining high macro F1-scores and keeping a low False Positive Rate (FPR). On the unseen test set, the final model achieved 99.93\% macro accuracy, 86.10\% macro precision, 90.22\% macro recall, and 86.93\% macro F1-score. Specifically for Brute Force traffic, it delivered 98.70\% precision, 92.66\% recall, 95.58\% F1-score, and a remarkably low 0.0253\% FPR. 
+
+Despite these positive results, the study has limitations. The evaluation relied solely on the CICIDS2017 dataset, and the pipeline was less effective on extremely minority classes like SQL-Injection and Infiltrations. Future research should evaluate the proposed pipeline on newer datasets, implement feature scaling for distance-sensitive models, and explore few-shot learning techniques to reduce reliance on synthetic data for rare attacks. Ultimately, this study demonstrates that effective minority-attack detection requires a holistic approach that concurrently addresses class representation, feature relevance, and model diversity.
 
 \FloatBarrier
 
