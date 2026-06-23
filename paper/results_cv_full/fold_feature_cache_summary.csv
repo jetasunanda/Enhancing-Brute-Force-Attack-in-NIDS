@@ -1,0 +1,6 @@
+Fold,Train Rows,Validation Rows,Selected Feature Count,Dropped Correlated Feature Count,Final Feature Count
+1,293341,73336,30,14,16
+2,293341,73336,30,14,16
+3,293342,73335,30,14,16
+4,293342,73335,30,14,16
+5,293342,73335,30,15,15

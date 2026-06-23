@@ -1,0 +1,2 @@
+Run Mode,Selected Final Configuration,Selected Classifier Model,Selected Sampling Method,Selection Metric,Final Test Configurations,Final Train-Val Rows Before Sampling,Final Train-Val Rows After Sampling,Final Test Rows,Final Feature Count
+full,Stacking - SMOTE-Tomek,Stacking Ensemble,SMOTE-Tomek,Highest validation Macro F1-score after selected sampling method,1,366677,762178,157148,16

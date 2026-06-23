@@ -1,0 +1,2 @@
+Split,Model,Sampling Method,Classifier Model,Final Train-Val Rows Before Sampling,Final Train-Val Rows After Sampling,Final Test Rows,Final Feature Count,Log Loss,Macro Accuracy,Macro Precision,Macro Recall,Macro F1-score,Macro FPR,Macro ROC-AUC
+Final Test,Stacking,SMOTE-Tomek,Stacking Ensemble,366677,762178,157148,16,0.011552520863587736,0.9993461577621097,0.8609539007069607,0.9022310559846427,0.8692505149642169,0.00036396288985529655,0.9798028037307196

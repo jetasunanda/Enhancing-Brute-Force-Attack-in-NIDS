@@ -1,0 +1,2 @@
+Selection Role,Sampling Method,Classifier Model,Log Loss,Macro Accuracy,Macro Precision,Macro Recall,Macro F1-score,Macro FPR,Macro ROC-AUC,Validation Folds
+Selected Sampling Method,SMOTE-Tomek,Decision Tree,0.06902647973085144,0.9991259335860517,0.8385432513360966,0.8909858929132557,0.838338282165342,0.0005077242792715561,0.9499433956993991,5
