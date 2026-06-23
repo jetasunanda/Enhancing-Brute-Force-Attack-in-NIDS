@@ -286,7 +286,7 @@ The feature selection process, combining ANOVA \textit{SelectKBest} and correlat
 
 The proposed pipeline combined SMOTE-Tomek, feature selection, and ensemble learning (Stacking and Soft Voting) to build a robust detection model. The final model achieved strong detection rates for Brute Force, Benign, DDoS, Bot, and Port Scan traffic. However, its performance was less stable for extremely small classes such as SQL-Injection and Infiltrations. 
 
-Comparing the ensemble strategies, the Stacking Ensemble provided the highest macro F1-score and better false-positive control compared to the Soft Voting approach. Thus, the Stacking Ensemble combined with SMOTE-Tomek was selected as the primary model.
+Comparing the ensemble strategies, the Stacking Ensemble provided the highest macro F1-score and better false-positive control compared to the Soft Voting approach. During validation, the Stacking Ensemble achieved 99.93\% macro accuracy, 86.35\% macro precision, 87.20\% macro recall, 84.78\% macro F1-score, 0.0406\% macro FPR, and 98.90\% macro ROC-AUC. Thus, the Stacking Ensemble combined with SMOTE-Tomek was selected as the primary model.
 
 % ============================================================
 \section{Conclusion}
