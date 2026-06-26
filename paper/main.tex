@@ -1,4 +1,4 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[conference,a4paper]{IEEEtran}
 \IEEEoverridecommandlockouts
 
 \usepackage{cite}
@@ -113,7 +113,7 @@ The main contributions of this study are: (1) an integrated CICIDS2017 pipeline 
 \section{Related Works}
 % ============================================================
 
-As global connectivity grows, Intrusion Detection Systems (IDS) increasingly rely on machine learning to tackle technical hurdles like high dimensionality and class imbalance. Recent experimental studies typically focus on three areas: feature selection, hybrid sampling, and ensemble learning. Examining these experiments identifies the gaps necessary to develop a hybrid approach that improves the detection of minority attacks, such as Brute Force.
+Machine learning is now heavily used in Intrusion Detection Systems (IDS) to handle complex network data and class imbalance. Many recent studies focus on feature selection, data sampling, and ensemble models to improve detection rates. This section reviews previous experiments to identify the current limitations in detecting minority attacks like Brute Force, which motivates our proposed approach
 
 \subsection{Feature Selection and Dimensionality Reduction in NIDS}
 
@@ -153,10 +153,9 @@ CICIDS2017 is a public benchmark from the Canadian Institute for Cybersecurity, 
 \caption{Class Distribution Across Main Processing Stages}
 \label{tab:class_dist}
 \centering
-\scriptsize
+\footnotesize
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3pt}
-\resizebox{\linewidth}{!}{%
 \begin{tabular}{|l|r|r|r|}
 \hline
 \textbf{Label} & \textbf{Cleaned} & \textbf{Train Before} & \textbf{Train After} \\
@@ -178,14 +177,13 @@ SQL-Injection & 21 & 11 & 76,999 \\
 XSS & 652 & 320 & 76,400 \\
 \hline
 \end{tabular}
-}
 \end{table}
 
 \subsection{Data Preprocessing}
 
 Data preprocessing was done to ensure data quality and model robustness for dataset CICIDS 2017. Data cleaning involved remove the redudant entries and missing values to prevent bias on parameter estimation during training. The feature set was restricted to numerical attributes, in order to optimize the input for the ensemble model. 
 
-To preserve the original data distributions, a stratified sampling approach was used for both the initial train-test-validation (49\%/30\%/21\%) split, and followed by k-fold cross-validation. This ensures that the minority attack classes are proportionally represented, and preventing "fold-bias". Also, ensuring that the evaluation metrics accurately reflect the model's ability to detect rare intrusion events.
+To preserve the original data distributions, a stratified sampling approach was used. The initial split allocated 70\% of the data to training, 30\% to testing. The training data was then split using the stratified k-fold method into four folds for training data and one fold for validation data. This ensures that the minority attack classes are proportionally represented, and preventing the model from being biased towards majority classes during training and evaluation. Also, ensuring that the evaluation metrics accurately reflect the model's ability to detect rare intrusion events.
 
 \subsection{Feature Selection}
 
@@ -250,16 +248,15 @@ This section presents the experimental results, focusing on the impact of class 
 
 \subsection{Effect of Hybrid Sampling on Class Representation}
 
-To determine the optimal sampling strategy, five-fold validation was conducted using a Decision Tree classifier. As shown in Table~\ref{tab:sampling_selection_macro}, among the evaluated techniques, SMOTE-Tomek achieved the strongest macro F1-score (83.83\%), macro precision (83.85\%), macro recall (89.10\%), and macro ROC-AUC (94.99\%). While Tomek Links produced the lowest macro FPR, its macro F1-score was lower than the baseline, indicating that cleaning majority-boundary samples alone is insufficient without increasing minority exposure. 
+To determine the optimal sampling strategy, five-fold validation was conducted using a Decision Tree classifier. As shown in Table~\ref{tab:sampling_selection_macro}, among the evaluated techniques, SMOTE-Tomek achieved the strongest macro F1-score (83.83\%), macro precision (83.85\%), macro recall (89.10\%), and macro ROC-AUC (94.99\%). While Tomek Links produced the lowest macro FPR, its macro F1-score was lower than the baseline. This shows that cleaning majority samples is not enough if we don't also increase the number of minority samples
 
-\begin{table}[htbp]
+\begin{table*}[!t]
 \caption{Sampling Method Selection Based on Validation Macro Performance}
 \label{tab:sampling_selection_macro}
 \centering
-\scriptsize
+\footnotesize
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{3pt}
-\resizebox{\linewidth}{!}{%
 \begin{tabular}{|l|r|r|r|r|r|r|}
 \hline
 \textbf{Sampling Method} & \textbf{Macro Acc.} & \textbf{Macro Prec.} & \textbf{Macro Rec.} & \textbf{Macro F1} & \textbf{Macro FPR} & \textbf{Macro ROC-AUC} \\
@@ -273,14 +270,13 @@ SMOTE-Tomek & 99.91\% & 83.85\% & 89.10\% & 83.83\% & 0.0508\% & 94.99\% \\
 Tomek & 99.93\% & 79.65\% & 86.43\% & 81.20\% & 0.0450\% & 93.42\% \\
 \hline
 \end{tabular}
-}
-\end{table}
+\end{table*}
 
-SMOTE-Tomek proved superior by combining synthetic minority oversampling with Tomek-link cleaning. In the training partition, Brute Force samples increased significantly from 5,204 to 76,385. This reduced the imbalance ratio against DDoS, the largest attack class, from approximately 30.30:1 to 2.06:1. Consequently, SMOTE-Tomek was selected as the most appropriate method because it substantially improved minority-attack representation without discarding the dataset's multiclass structure.
+SMOTE-Tomek proved superior by combining synthetic minority oversampling with Tomek-link cleaning. In the training partition, Brute Force samples increased significantly from 5,204 to 76,385. This reduced the imbalance ratio against DDoS, the largest attack class, from approximately 30.30:1 to 2.06:1. Thus, SMOTE-Tomek was selected as the most appropriate method because it substantially improved minority-attack representation without discarding the dataset's multiclass structure.
 
 \subsection{Selected Flow Features and Detection Meaning}
 
-The feature selection process, combining ANOVA \textit{SelectKBest} and correlation pruning, reduced the feature space from 70 to 16 attributes. Permutation importance revealed that Destination Port was the most influential feature. The remaining features were categorized into TCP window behavior, timing behavior, packet behavior, and TCP flag behavior. These features directly reflect the nature of Brute Force attacks, which typically target specific services repeatedly and exhibit regular timing patterns. This demonstrates that the model leverages meaningful network behaviors rather than relying solely on volume-driven anomalies, thereby enhancing both performance and interpretability.
+The feature selection process, combining ANOVA \textit{SelectKBest} and correlation pruning, reduced the feature space from 70 to 16 attributes. Permutation importance revealed that Destination Port was the most influential feature. The remaining features were categorized into TCP window behavior, timing behavior, packet behavior, and TCP flag behavior. These features directly reflect the nature of Brute Force attacks, which typically target specific services repeatedly and exhibit regular timing patterns. These selected features align with the actual behavior of Brute Force attacks, where attackers repeatedly access specific ports and leave consistent timing signatures. Therefore, the model learns to detect the underlying pattern of the attack rather than just reacting to high traffic volumes.
 
 \subsection{Final Model Evaluation}
 
@@ -294,9 +290,10 @@ Comparing the ensemble strategies, the Stacking Ensemble provided the highest ma
 
 This study proposed a comprehensive pipeline to enhance Brute Force Attack Detection in a multiclass Network Intrusion Detection System (NIDS) using the CICIDS2017 dataset. The proposed workflow integrated label consolidation, train-only feature selection, SMOTE-Tomek hybrid sampling, and ensemble learning. This multi-stage approach successfully addressed the challenges of redundant features, severe class imbalance, and the reliance on a single classifier, without violating experimental integrity through data leakage.
 
-SMOTE-Tomek significantly expanded the Brute Force training representation, successfully managing the severe imbalance ratio. Consequently, the Stacking Ensemble combined with SMOTE-Tomek was selected as the primary model for its superior balance between maintaining high macro F1-scores and keeping a low False Positive Rate (FPR). On the unseen test set, the final model achieved 99.93\% macro accuracy, 86.10\% macro precision, 90.22\% macro recall, and 86.93\% macro F1-score. Specifically for Brute Force traffic, it delivered 98.70\% precision, 92.66\% recall, 95.58\% F1-score, and a remarkably low 0.0253\% FPR. 
+SMOTE-Tomek significantly increased the Brute Force representation in the training data. As a result, the Stacking Ensemble model achieved a good balance between macro F1-score and false positive rate. On the test set, the model reached a 95.58\% F1-score and 98.70\% precision specifically for Brute Force traffic.
 
-Despite these positive results, the study has limitations. The evaluation relied solely on the CICIDS2017 dataset, and the pipeline was less effective on extremely minority classes like SQL-Injection and Infiltrations. Future research should evaluate the proposed pipeline on newer datasets, implement feature scaling for distance-sensitive models, and explore few-shot learning techniques to reduce reliance on synthetic data for rare attacks. Ultimately, this study demonstrates that effective minority-attack detection requires a holistic approach that concurrently addresses class representation, feature relevance, and model diversity.
+Despite these positive results, the study has limitations. The model's performance on extremely small classes like SQL-Injection was still lacking, and the results are currently limited to the CICIDS2017 dataset. Future work should test this method on more recent datasets and consider alternative techniques like few-shot learning to better handle extremely rare attacks.
+
 
 \FloatBarrier
 
